@@ -1,0 +1,244 @@
+﻿<div layout="row" layout-align="center center" flex="100">
+    <form name="EntityForm" layout-align="center center" flex="75">
+        <fieldset class="invisible">
+            <md-card>
+                <md-toolbar>
+                    <div class="md-toolbar-tools" layout-align="center center">
+                        <span class="md-title">{{$ctrl.options.Title}}</span>
+                    </div>
+                </md-toolbar>
+            </md-card>
+            <md-card class="with-orange-border">
+                <div layout="row"
+                     layout-align="end center">
+                    <md-button class="md-raised md-primary"
+                               ng-click="$ctrl.backClickFunction()">
+                        Volver
+                    </md-button>
+                </div>
+                <div layout="row"
+                     layout-align="center center"
+                     flex="100"
+                     ng-if="$ctrl.options.ZeroLevelButtons.Add">
+                    <md-button class="md-raised md-primary"
+                               ng-click="$ctrl.addClickFunction({event: $event, entity: undefined, parentEntity: undefined, index: undefined})">
+                        Add {{' ' + $ctrl.options.SingularEntityName}}
+                    </md-button>
+                </div>
+                <div layout="row"
+                     layout-align="center center"
+                     flex="100"
+                     ng-if="$ctrl.options.Legend">
+
+                    <md-card>
+                        <md-table-container>
+                            <table md-table>
+                                <tbody md-body>
+                                    <tr md-row>
+                                        <td md-cell>{{ '- ' + $ctrl.options.Legend.FirstLevel }}</td>
+                                    </tr>
+                                    <tr md-row ng-if="$ctrl.options.Legend.SecondLevel">
+                                        <td md-cell><span style="padding-left:40px">{{ '- ' + $ctrl.options.Legend.SecondLevel }}</span></td>
+                                    </tr>
+                                    <tr md-row ng-if="$ctrl.options.Legend.ThirdLevel">
+                                        <td md-cell><span style="padding-left:80px">{{ '- ' + $ctrl.options.Legend.ThirdLevel }}</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </md-table-container>
+                    </md-card>
+                </div>
+                <div flex="100" layout="row" layout-align="center center">
+                    <md-card flex="75">
+                        <md-table-container>
+                            <table md-table md-progress="$ctrl.promise">
+                                <thead md-head
+                                       md-order="$ctrl.options.OrderBy">
+                                    <tr md-row>
+                                        <th md-column
+                                            ng-repeat="col in $ctrl.options.Columns"
+                                            ng-attr-md-order-by="{{col.Order ? (col.PropertyToOrder ? col.PropertyToOrder : col.Property) : ''}}"
+                                            ng-class="col.Classes">
+                                            {{col.Title}}
+                                        </th>
+                                        <th md-column class="width-50"></th>
+                                        <th md-column class="width-50"></th>
+                                        <th md-column md-order-by="Enable" class="width-50">Enable</th>
+                                    </tr>
+                                </thead>
+                                <tbody md-body>
+                                    <!-- ///FIRST LEVEL -->
+                                    <tr md-row
+                                        ng-repeat-start="entity in $ctrl.entityArray
+                                                       | orderBy: $ctrl.options.OrderBy
+                                                       | filter: $ctrl.Search">
+                                        <td md-cell
+                                            ng-repeat="col in $ctrl.options.Columns"
+                                            ng-class="col.Classes">
+                                            <span ng-switch="col.IsObject">
+                                                <span ng-switch-when="true">
+                                                    {{col.Prefix ? entity[col.ObjectName][col.Prefix] + ' - ' : ''}} {{entity[col.ObjectName][col.Property]}}
+                                                </span>
+                                                <span ng-switch-when="false">
+                                                    {{col.Prefix ? entity[col.Prefix] + ' - ' : ''}} 
+                                                    <span ng-switch="col.DataType">
+                                                        <span ng-switch-when="Date">{{$ctrl.moment(entity[col.Property]).format('DD/MM/YYYY')}}</span>
+                                                        <span ng-switch-when="Decimal">{{entity[col.Property].toLocaleString()}}</span>
+                                                        <span ng-switch-default>{{entity[col.Property]}}</span>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                        </td>
+                                        <td md-cell class="width-50">
+                                            <md-button aria-label="add_entity_{{entity.Id}}"
+                                                       class="md-icon-button"
+                                                       ng-if="$ctrl.options.FirstLevelButtons.Add && !entity.DeniedAdd"
+                                                       ng-click="$ctrl.addClickFunction({event: $event, entity: undefined, parentEntity: entity, index: undefined})">
+                                                <i class="material-icons">add_circle</i>
+                                                <md-tooltip md-direction="left">
+                                                    Add Sub-{{$ctrl.options.SingularEntityName}}
+                                                </md-tooltip>
+                                            </md-button>
+                                        </td>
+                                        <td md-cell class="width-50">
+                                            <md-button aria-label="edit_entity_{{entity.Id}}"
+                                                       class="md-icon-button"
+                                                       ng-if="$ctrl.options.FirstLevelButtons.Edit"
+                                                       ng-click="$ctrl.editClickFunction({event: $event, entity: entity, parentEntity: undefined, index: $index})">
+                                                <i class="material-icons">mode_edit</i>
+                                            </md-button>
+                                        </td>
+                                        <td md-cell class="width-50">
+                                            <md-switch aria-label="enable_entity_{{entity.Id}}"
+                                                       class="md-primary table-switch"
+                                                       ng-if="$ctrl.options.FirstLevelButtons.Enable"
+                                                       ng-model="entity.Enable"
+                                                       ng-change="$ctrl.enableClickFunction({entity: entity})">
+                                                {{entity.Enable ? 'SI':'NO'}}
+                                            </md-switch>
+                                        </td>
+                                    </tr>
+                                    <!-- FIRST LEVEL/// -->
+                                    <!-- ///SECOND LEVEL -->
+                                    <tr md-row
+                                        ng-if="$ctrl.options.Levels >= 2"
+                                        ng-repeat-start="subEntity in entity[$ctrl.options.SubArrayName]
+                                                                 | orderBy: $ctrl.options.OrderBy">
+                                        <td md-cell
+                                            style="padding-left:40px !important;"
+                                            ng-repeat="col in $ctrl.options.Columns"
+                                            ng-class="col.Classes">
+                                            <span ng-switch="col.IsObject">
+                                                <span ng-switch-when="true">
+                                                    {{col.Prefix ? subEntity[col.ObjectName][col.Prefix] + ' - ' : ''}} {{subEntity[col.ObjectName][col.Property]}}
+                                                </span>
+                                                <span ng-switch-when="false">
+                                                    {{col.Prefix ? subEntity[col.Prefix] + ' - ' : ''}} {{subEntity[col.Property]}}
+                                                </span>
+                                            </span>
+                                        </td>
+
+                                        <td md-cell class="width-50">
+                                            <md-button aria-label="add_subEntity_{{subEntity.Id}}"
+                                                       class="md-icon-button"
+                                                       ng-if="$ctrl.options.SecondLevelButtons.Add"
+                                                       ng-click="$ctrl.addClickFunction({event: $event, entity: undefined, parentEntity: subEntity, index: undefined})">
+                                                <i class="material-icons">add_circle</i>
+                                                <md-tooltip md-direction="left">
+                                                    Add Sub-{{$ctrl.options.SingularEntityName}}
+                                                </md-tooltip>
+                                            </md-button>
+                                        </td>
+
+                                        <td md-cell class="width-50">
+                                            <md-button aria-label="edit_subEntity_{{subEntity.Id}}"
+                                                       class="md-icon-button"
+                                                       ng-if="$ctrl.options.SecondLevelButtons.Edit"
+                                                       ng-click="$ctrl.editClickFunction({event: $event, entity: subEntity, parentEntity: entity, index: $index})">
+                                                <i class="material-icons">mode_edit</i>
+                                            </md-button>
+                                        </td>
+
+                                        <td md-cell class="width-50">
+                                            <md-switch aria-label="enable_subEntity_{{subEntity.Id}}"
+                                                       class="md-primary table-switch"
+                                                       ng-if="$ctrl.options.SecondLevelButtons.Enable"
+                                                       ng-model="subEntity.Enable"
+                                                       ng-change="$ctrl.enableClickFunction({entity: subEntity})">
+                                                {{subEntity.Enable ? 'SI':'NO'}}
+                                            </md-switch>
+                                        </td>
+                                    </tr>
+                                    <!-- SECOND LEVEL/// -->
+                                    <!-- ///THIRD LEVEL -->
+                                    <tr md-row
+                                        ng-if="$ctrl.options.Levels == 3"
+                                        ng-repeat="subSubEntity in subEntity[$ctrl.options.SubArrayName]
+                                                              | orderBy: $ctrl.options.OrderBy">
+                                        <td md-cell
+                                            style="padding-left:80px !important;"
+                                            ng-repeat="col in $ctrl.options.Columns"
+                                            ng-class="col.Classes">
+                                            <span ng-switch="col.IsObject">
+                                                <span ng-switch-when="true">
+                                                    {{col.Prefix ? subSubEntity[col.ObjectName][col.Prefix] + ' - ' : ''}} {{subSubEntity[col.ObjectName][col.Property]}}
+                                                </span>
+                                                <span ng-switch-when="false">
+                                                    {{col.Prefix ? subSubEntity[col.Prefix] + ' - ' : ''}} {{subSubEntity[col.Property]}}
+                                                </span>
+                                            </span>
+                                        </td>
+
+                                        <td md-cell class="width-50"></td>
+
+                                        <td md-cell class="width-50">
+                                            <md-button aria-label="edit_subSubEntity_{{subSubEntity.Id}}"
+                                                       class="md-icon-button"
+                                                       ng-if="$ctrl.options.ThirdLevelButtons.Edit"
+                                                       ng-click="$ctrl.editClickFunction({event: $event, entity: subSubEntity, parentEntity: subEntity, index: $index})">
+                                                <i class="material-icons">mode_edit</i>
+                                            </md-button>
+                                        </td>
+
+                                        <td md-cell class="width-50">
+                                            <md-switch aria-label="enable_subSubEntity_{{subSubEntity.Id}}"
+                                                       class="md-primary table-switch"
+                                                       ng-if="$ctrl.options.ThirdLevelButtons.Enable"
+                                                       ng-model="subSubEntity.Enable"
+                                                       ng-change="$ctrl.enableClickFunction({entity: subSubEntity})">
+                                                {{subSubEntity.Enable ? 'SI':'NO'}}
+                                            </md-switch>
+                                        </td>
+                                    </tr>
+                                    <!-- THIRD LEVEL/// -->
+
+                                    <tr ng-if="$ctrl.options.Levels >= 2"
+                                        ng-repeat-end></tr>
+
+                                    <tr ng-if="$ctrl.options.Levels == 3"
+                                        ng-repeat-end></tr>
+                                </tbody>
+                            </table>
+                        </md-table-container>
+                        <div layout="row">
+                            <md-input-container flex="30" ng-show="$ctrl.showSearch" style="border-top-color:rgba(0, 0, 0, 0.12); border-top-style:solid;border-top-width:0.989583px; margin:0px;padding:8px 0px 0px 4px">
+                                <label>Search</label>
+                                <input id="Search" name="Search" aria-label="Search" ng-model="$ctrl.Search" type="text" />
+                            </md-input-container>
+                            <md-table-pagination md-limit="$ctrl.pagination.limit"
+                                                 md-limit-options="$ctrl.pagination.limitOptions"
+                                                 md-page="$ctrl.pagination.page"
+                                                 md-total="{{$ctrl.totalPages}}"
+                                                 md-page-select="true"
+                                                 md-boundary-links="false"
+                                                 md-label="{page: 'Página:', rowsPerPage: 'Filas por página:', of: 'de'}"
+                                                 ng-show="$ctrl.entityArray.length > 0 && $ctrl.showPagination"
+                                                 flex="70">
+                            </md-table-pagination>
+                        </div>
+                    </md-card>
+                </div>
+            </md-card>
+        </fieldset>
+    </form>
+</div>
