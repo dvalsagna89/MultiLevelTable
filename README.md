@@ -1,5 +1,5 @@
 # MultiLevelTable
-A multi level table for AngularJS that shows 3 levels of a parameter an allows edit, add or remove elements.
+A multi-level table for AngularJS that shows 3 levels of a parameter an allows edit, add or remove elements.
 
 # How to use
 
@@ -19,7 +19,7 @@ A multi level table for AngularJS that shows 3 levels of a parameter an allows e
     ```
   - Add the loader you want. A div tag with id="loader" is needed. I'm using one from this page: https://icons8.com/cssload
   
-# What i learned
+# What I learned
   - Send functions as parameters
   - Using ng-repeat-start
   - Using JSON to set up options
